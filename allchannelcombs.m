@@ -7,4 +7,4 @@ combs=cat(1,combs,num2cell(unique(sort(tmp(:,1:i),2,'ascend'),'rows'),2));
  
 end
 
-endd
+end
