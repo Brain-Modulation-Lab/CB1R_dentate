@@ -88,7 +88,7 @@ for ch=1:length(ch_label)
     
     CCOVINT=cell(length(combs),1);
     for s=1:length(CCOV)
-        if ~isempty(CCOV)
+        if ~isempty(CCOV{s})
             CCOVINT{s}(:,1)= arrayfun(@(x) mean(pri_ch(stack.CC{ch}.PixelIdxList{x})),CCOV{s});
             for s2=1:length(sec_masks)
                 CCOVINT{s}(:,s2+1)= arrayfun(@(x) mean(sec_chs{s2}(stack.CC{ch}.PixelIdxList{x})),CCOV{s});
