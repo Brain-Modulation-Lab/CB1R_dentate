@@ -1,4 +1,4 @@
-function [output]=parse_stack(stack,crit_prc_ovl,class_confidence,zrange,SF,expos,Ccount)
+function [Summary_stats]=parse_stack(stack,crit_prc_ovl,class_confidence,zrange,SF,expos,Ccount,vol)
 
 % define the bins in the z-plane
 nbins=40;
@@ -97,50 +97,49 @@ for ch=1:length(ch_label)
         end
         
     end
-    [CCOV,CCOVINT]=classify_puncta(CCOV,CCOVINT,stack,POPtS,pri_ch,sec_chs,ch,class_confidence);
+    [CCOV,CCOVINT]=classify_puncta(CCOV,CCOVINT,stack,POPtS,pri_ch,sec_chs,ch,class_confidence,ch_label,sec_masks);
     
+    
+    for s=1:length(combs)
+        sec_interct=setdiff(1:length(ch_label)-1,combs{s});
+        for i=1:length(sec_interct)
+            CCOVINT{s}=CCOVINT{s}(~ismember(CCOV{s},POPtS{sec_interct(i)}));
+            CCOV{s}=CCOV{s}(~ismember(CCOV{s},POPtS{sec_interct(i)}));
+            
+        end
+    end
+    
+    
+output(1,:)=[{'comb'}  {'density_per_volume'} {'density_per_cell'} {'count'} {'size'} {pri_mask} sec_masks(:)' {'puncta'}];
+for s=1:length(CCOV)
+    tmp=[CCOV{s} CCOVINT{s}];
+    x=[];
+    for y=1:length(combs{s})
+        x=cat(1,x,sec_masks{combs{s}(y)});
+    end
+    output{s+1,1}=x;
+    if ~isempty(CCOV{s})
+
+        output(s+1,6:9)=num2cell(mean(tmp(:,2:end)));
+        output(s+1,2)=num2cell(length(CCOV{s})/vol);
+        output(s+1,3)=num2cell(length(CCOV{s})/Ccount);
+        output(s+1,4)=num2cell(length(CCOV{s}));
+        output(s+1,5)=num2cell(median(stack.Stat(ch + (ch-1)*2).vol(CCOV{s}))*(.267*0.267*0.25));
+        output{s+1,10}=tmp;
+    else
+        output(s+1,6:9)=num2cell(NaN(1,4));
+        output(s+1,2)=num2cell(0);
+        output(s+1,3)=num2cell(0);
+        output(s+1,4)=num2cell(0);
+        output(s+1,5)=num2cell(NaN);
+        output{s+1,10}={0};
+
+    end
 end
 
-%%
-% output(1,:)=[{'comb'}  {'density_per_volume'} {'density_per_cell'} {'count'} {'size'} {pri_mask} sec_masks(:)' {'puncta'}];
-% for s=1:length(CCOV)
-%     tmp=[CCOV{s} bsxfun(@times,CCOVINTS{s},expos(1:4).*SF(1:4))];
-%     x=[];
-%     for y=1:length(combs{s})
-%         x=cat(1,x,sec_masks{combs{s}(y)});
-%     end
-%     output{s+1,1}=x;
-%     if ~isempty(CCOV{s})
-%
-%         output(s+1,6:9)=num2cell(mean(tmp(:,2:end)));
-%         output(s+1,2)=num2cell(length(CCOV{s})/vol);
-%         output(s+1,3)=num2cell(length(CCOV{s})/Ccount);
-%         output(s+1,4)=num2cell(length(CCOV{s}));
-%
-%         switch s
-%             case {1 5 7}
-%                 id=CCOV{s};
-%                 tmp2=zeros(length(id),1);
-%                 for i=1:length(id)
-%                     tmp2(i)= max(Stat(4).vol(nonzeros(Stat(1).OverlapObjID(id(i),:))));
-%                 end
-%                 output(s+1,5)=num2cell(median(tmp2)*(.267*0.267*0.25));
-%
-%             otherwise
-%
-%                 output(s+1,5)=num2cell(median(Stat(1).vol(CCOV{s}))*(.267*0.267*0.25));
-%         end
-%         output{s+1,10}=tmp;
-%     else
-%         output(s+1,6:9)=num2cell(NaN(1,4));
-%         output(s+1,2)=num2cell(0);
-%         output(s+1,3)=num2cell(0);
-%         output(s+1,4)=num2cell(0);
-%         output(s+1,5)=num2cell(NaN);
-%         output{s+1,10}={0};
-%
-%     end
-% end
+Summary_stats(ch).Output=output;
+end
+
 
 
 end

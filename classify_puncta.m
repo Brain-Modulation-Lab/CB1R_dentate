@@ -1,4 +1,4 @@
-function [CCOV,CCOVINT]=classify_puncta(CCOV,CCOVINT,stack,POPtS,pri_ch,sec_chs,ch,class_confidence)
+function [CCOV,CCOVINT]=classify_puncta(CCOV,CCOVINT,stack,POPtS,pri_ch,sec_chs,ch,class_confidence,ch_label,sec_masks)
         class=[];
         for i=1:length(CCOV)
             class=cat(1,class,i*ones(length(CCOV{i}),1));
